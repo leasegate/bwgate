@@ -30,11 +30,14 @@ bwgate list [folder]                      item names, no secrets
 bwgate get <item> [field] [--show]        an item; secrets stay hidden unless --show
 bwgate clip <item> [field]                a value on the clipboard for 30 s (default: password)
 bwgate exec --env TOKEN=<item>[:field] -- <command> [args]
-bwgate create <folder|-> <name> [name=value ...] [--generate[=N]]
+bwgate create <folder|-> <name> [name=value ...] [--file name=<path>] [--generate[=N]] [--collection <org/collection>]
+bwgate collections                        the organisations' collections (names only)
 bwgate edit <item> name=value ...
 bwgate trash <item>
 bwgate generate [N]
 ```
+
+Items in a shared organisation are read and edited like your own; `bwgate status` shows how many come from each organisation and anything a sync could not open. `--collection` creates a new item in an organisation's collection instead of your personal vault.
 
 `<item>` is an id, `folder/name`, or a name. A name that matches more than one item is refused with their ids, never guessed. Values are `username`, `password`, `totp`, `uri`, `notes`, `name`, or a custom field's name. `name=-` reads that value from stdin, so no secret has to sit on a command line.
 
