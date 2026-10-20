@@ -40,7 +40,7 @@ public final class BwgateApp extends Application {
     @Override public void start(Stage stage) {
         if (alreadyRunning()) { System.err.println("bwgate is already running"); Platform.exit(); return; }
         stage.setTitle(Places.PRODUCT);
-        var brand = new Brand(Places.PRODUCT, COLOR, GateIcon.image(BwgateApp.class, "brand.png", COLOR));
+        var brand = new Brand(Places.PRODUCT, COLOR, new GateIcons(BwgateApp.class, "bwgate"));
         var password = UnlockWindow.show(brand, account, settings, "locked: log in to your vault", "Quit bwgate");
         if (password == null || !gate.unlock(password)) { Platform.exit(); System.exit(0); return; }
         Places.log("started and logged in");
@@ -67,6 +67,7 @@ public final class BwgateApp extends Application {
                 try { locker.ensureOpen(); vault.sync(true); tray.notify(vault.items().size() + " items"); }
                 catch (RuntimeException e) { tray.notify("sync failed: " + e.getMessage()); }
             })))
+            .describe("guards the Bitwarden vault", "https://github.com/leasegate/bwgate")
             .quit("Quit bwgate (the vault key is forgotten; requests stop until it starts again)", account::close)
             .install();
     }
