@@ -54,13 +54,14 @@ public final class BwgateMain {
             "       bwgate clip <item> [field]               a value on the clipboard for 30s (default: password)",
             "       bwgate exec --env NAME=<item>[:field] ... -- <command> [args]",
             "                                                run a command with secrets in its environment only",
-            "       bwgate create <folder|-> <name> [name=value ...] [--generate[=N]]",
-            "       bwgate edit <item> name=value ... [--generate[=N]]",
+            "       bwgate create <folder|-> <name> [name=value ...] [--file name=<path>] [--generate[=N]]",
+            "       bwgate edit <item> name=value ... [--file name=<path>] [--generate[=N]]",
             "       bwgate trash <item>                      move to the trash (asks the master password)",
             "       bwgate generate [N]                      a random password, no tray needed",
             "",
             "<item> is an id, folder/name, or a name. Values: username, password, totp, uri, notes, name, or a",
-            "custom field's name; name=- reads that value from stdin, so no secret has to sit on a command line.",
+            "custom field's name; name=- reads that value from stdin and --file name=<path> a whole file (a key),",
+            "so no secret has to sit on a command line.",
             "Every request is approved in the tray's window. --minutes N asks for that long; --folder-wide asks",
             "for the item's whole folder (get, clip, exec)."}) System.err.println(l);
     }

@@ -30,7 +30,7 @@ final class Args {
         for (; i < argv.length; i++) after.add(argv[i]);
     }
 
-    static boolean takesValue(String flag) { return flag.equals("env") || flag.equals("minutes"); }
+    static boolean takesValue(String flag) { return flag.equals("env") || flag.equals("minutes") || flag.equals("file"); }
 
     boolean has(String flag) { return flags.containsKey(flag); }
 
@@ -48,6 +48,12 @@ final class Args {
             out.put(w.substring(0, eq), v.equals("-") ? stdinLine(w.substring(0, eq)) : v);
         }
         if (has("generate")) out.put("password", Generate.password(flags.get("generate").isEmpty() ? 24 : Integer.parseInt(flags.get("generate"))));
+        if (has("file")) for (var spec : flags.get("file").split("\n")) {
+            var eq = spec.indexOf('=');
+            if (eq <= 0) throw new IllegalArgumentException("--file wants name=<path>, got " + spec);
+            try { out.put(spec.substring(0, eq), java.nio.file.Files.readString(java.nio.file.Path.of(spec.substring(eq + 1)))); }
+            catch (java.io.IOException e) { throw new IllegalArgumentException("cannot read " + spec.substring(eq + 1) + ": " + e.getMessage()); }
+        }
         return out;
     }
 
