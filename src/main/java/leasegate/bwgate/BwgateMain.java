@@ -29,6 +29,7 @@ public final class BwgateMain {
                 case "clip" -> Commands.clip(a);
                 case "exec" -> Commands.exec(a);
                 case "create" -> Commands.create(a);
+                case "collections" -> { System.out.println(Client.ask(Commands.minutes(Client.op("collections"), a)).path("collections").toPrettyString()); yield 0; }
                 case "edit" -> Commands.edit(a);
                 case "trash" -> Commands.trash(a);
                 default -> { usage(); yield 2; }
@@ -55,6 +56,8 @@ public final class BwgateMain {
             "       bwgate exec --env NAME=<item>[:field] ... -- <command> [args]",
             "                                                run a command with secrets in its environment only",
             "       bwgate create <folder|-> <name> [name=value ...] [--file name=<path>] [--generate[=N]]",
+            "                     [--collection <org/collection>]  create it in a shared organisation instead",
+            "       bwgate collections                       the organisations' collections (names only)",
             "       bwgate edit <item> name=value ... [--file name=<path>] [--generate[=N]]",
             "       bwgate trash <item>                      move to the trash (asks the master password)",
             "       bwgate generate [N]                      a random password, no tray needed",

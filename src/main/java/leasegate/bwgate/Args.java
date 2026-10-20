@@ -30,7 +30,7 @@ final class Args {
         for (; i < argv.length; i++) after.add(argv[i]);
     }
 
-    static boolean takesValue(String flag) { return flag.equals("env") || flag.equals("minutes") || flag.equals("file"); }
+    static boolean takesValue(String flag) { return flag.equals("env") || flag.equals("minutes") || flag.equals("file") || flag.equals("collection"); }
 
     boolean has(String flag) { return flags.containsKey(flag); }
 

@@ -24,7 +24,8 @@ final class Commands {
         if (a.word(0) != null) body.put("folder", a.word(0));
         var items = Client.ask(minutes(body, a)).path("items");
         if (a.has("json")) { System.out.println(items.toPrettyString()); return 0; }
-        items.forEach(i -> System.out.println(i.path("id").asText() + "  " + path(i) + "  (" + i.path("type").asText() + ")"));
+        items.forEach(i -> System.out.println(i.path("id").asText() + "  " + path(i) + "  (" + i.path("type").asText()
+            + (i.hasNonNull("org") ? ", organisation " + i.path("org").asText() : "") + ")"));
         return 0;
     }
 
@@ -73,6 +74,7 @@ final class Commands {
         if (a.word(1) == null) throw new IllegalArgumentException("bwgate create <folder|-> <name> [name=value ...]");
         var body = Client.op("create").put("name", a.word(1)).put("allowEmpty", true);
         if (!a.word(0).equals("-")) body.put("folder", a.word(0));
+        if (a.has("collection")) body.put("collection", a.flags.get("collection"));
         body.set("values", M.valueToTree(a.values(2)));
         System.out.println(Client.ask(minutes(body, a)).path("id").asText());
         return 0;

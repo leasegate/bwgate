@@ -17,10 +17,14 @@ public final class Writer {
 
     /// `values` are the same names `Reveal.field` reads: username, password, totp, uri, notes, or a
     /// custom field's name (created as a hidden field).
-    public Item create(String folder, String name, Map<String, String> values) {
-        var key = vault.account.userKey();
+    public Item create(String folder, String name, Map<String, String> values) { return create(folder, name, values, null); }
+
+    /// With a collection, the item is the organisation's: encrypted with its key and sent with the
+    /// collection it belongs to (an organisation item must belong to one).
+    public Item create(String folder, String name, Map<String, String> values, Collection col) {
+        var key = col == null ? vault.account.userKey() : vault.orgKey(col.orgId());
         var body = M.createObjectNode().put("type", 1).put("name", EncString.encrypt(name, key)).put("favorite", false).put("reprompt", 0);
-        body.putNull("organizationId");
+        if (col == null) body.putNull("organizationId"); else body.put("organizationId", col.orgId());
         if (folder != null) body.put("folderId", vault.folderId(folder).orElseGet(() -> newFolder(folder)));
         else body.putNull("folderId");
         body.putNull("notes");
@@ -29,7 +33,8 @@ public final class Writer {
         login.putArray("uris");
         body.putArray("fields");
         values.forEach((k, v) -> set(body, k, v, key));
-        var a = vault.account.api.post("/api/ciphers", body);
+        var a = col == null ? vault.account.api.post("/api/ciphers", body) : vault.account.api.post("/api/ciphers/create",
+            M.createObjectNode().<ObjectNode>set("cipher", body).set("collectionIds", M.createArrayNode().add(col.id())));
         if (!a.ok()) throw new IllegalStateException("the server refused the new item: HTTP " + a.status() + " " + a.body());
         vault.sync(true);
         return vault.find(str(a.body(), "id"));

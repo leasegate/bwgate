@@ -56,7 +56,7 @@ final class Handler {
         return switch (hs.op()) {
             case "ping" -> Replies.wrap(M.createObjectNode().put("ok", true).put("product", Places.PRODUCT));
             case "status" -> Replies.wrap(M.createObjectNode().put("ok", true).put("product", Places.PRODUCT).put("locked", !vault.account.open())
-                .put("items", vault.items().size()).put("approvals", engine.activeGrants().size()));
+                .put("items", vault.items().size()).put("approvals", engine.activeGrants().size()).set("vault", vaultStatus()));
             case "list" -> {
                 vault.sync(false);
                 var folder = b.path("folder").asText(null);
@@ -64,7 +64,7 @@ final class Handler {
                 yield gated(a, raw, hs, s, () -> {
                     var arr = M.createArrayNode();
                     (folder == null ? vault.items() : vault.inFolder(folder.equals(BwScope.NO_FOLDER) ? null : folder)).forEach(i ->
-                        arr.addObject().put("id", i.id()).put("name", i.name()).put("folder", i.folder()).put("type", i.typeName()));
+                        arr.addObject().put("id", i.id()).put("name", i.name()).put("folder", i.folder()).put("type", i.typeName()).put("org", vault.orgName(i)));
                     return M.createObjectNode().set("items", arr);
                 });
             }
@@ -78,8 +78,19 @@ final class Handler {
                 vault.sync(false);
                 var folder = b.path("folder").asText(null);
                 var name = b.path("name").asText();
-                var s = new BwScope(Tier.WRITE, folder == null ? BwScope.NO_FOLDER : folder, null, "new item " + name, hs.minutes());
-                yield gated(a, raw, hs, s, () -> M.createObjectNode().put("id", writer.create(folder, name, values(b)).id()));
+                var col = b.hasNonNull("collection") ? vault.collection(b.get("collection").asText()) : null;
+                var where = col == null ? (folder == null ? BwScope.NO_FOLDER : folder) : "organisation " + col.orgName() + ", collection " + col.name();
+                var s = new BwScope(Tier.WRITE, where, null, "new item " + name + (col == null ? "" : ", shared with that collection"), hs.minutes());
+                yield gated(a, raw, hs, s, () -> M.createObjectNode().put("id", writer.create(folder, name, values(b), col).id()));
+            }
+            case "collections" -> {
+                vault.sync(false);
+                var s = new BwScope(Tier.LIST, null, null, "the names of the organisations' collections", hs.minutes());
+                yield gated(a, raw, hs, s, () -> {
+                    var arr = M.createArrayNode();
+                    vault.collections().forEach(c -> arr.addObject().put("id", c.id()).put("organisation", c.orgName()).put("name", c.name()).put("readOnly", c.readOnly()));
+                    return M.createObjectNode().set("collections", arr);
+                });
             }
             case "edit" -> {
                 var i = item(b);
@@ -102,6 +113,19 @@ final class Handler {
             case Outcome.Refused(var error, var hint) -> Replies.denied(error, hint);
             case Outcome.Allowed(var grant) -> { var out = work.get(); locker.touch(); yield Replies.approved("attested", grant.expiresAt(), out, null); }
         };
+    }
+
+    /// Where the items come from: the personal vault and each organisation, and what could not be
+    /// opened and why. Counts, names of organisations and item ids only.
+    ObjectNode vaultStatus() {
+        var n = M.createObjectNode();
+        var items = vault.items();
+        n.put("personal", items.stream().filter(i -> i.orgId() == null).count());
+        var orgs = n.putArray("organisations");
+        vault.orgs().forEach((id, name) -> orgs.addObject().put("name", name).put("items", items.stream().filter(i -> id.equals(i.orgId())).count()));
+        var skipped = n.putArray("skipped");
+        vault.skipped().forEach(skipped::add);
+        return n;
     }
 
     Item item(JsonNode b) {
