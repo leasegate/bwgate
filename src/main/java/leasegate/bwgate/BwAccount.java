@@ -103,11 +103,17 @@ public final class BwAccount {
 
     /// Whether `password` is this account's master password: it must open the vault key the server
     /// gave at login, and yield the same key.
+    /// Also while locked: the encrypted vault key opens only with the right password (its MAC is
+    /// checked), so it answers on its own when no key is in memory. bwgate locks itself on idle and on
+    /// Win+L, and a re-confirm (blanket mode, a broad request) used to report every password as wrong then.
     public boolean verify(String password) {
+        if (protectedKey == null || password == null) return false;
         var open = userKey;
-        if (protectedKey == null || password == null || open == null) return false;
         var stretched = BwCrypto.stretch(BwCrypto.masterKey(password, email, iterations));
-        try { return BwCrypto.same(EncString.decrypt(protectedKey, stretched), open.bytes()); }
+        try {
+            var key = EncString.decrypt(protectedKey, stretched);
+            return open == null || BwCrypto.same(key, open.bytes());
+        }
         catch (IllegalStateException wrong) { return false; }
         finally { stretched.wipe(); }
     }
