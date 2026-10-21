@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.leasegate</groupId>
     <artifactId>bwgate</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>bwgate</name>
     <description>A Bitwarden or Vaultwarden vault behind a leasegate gate: a pure-Java client that keeps the vault key in the tray, and releases one item or one folder at a time, per process and for a limited time, after a human has seen who is asking.</description>
@@ -30,7 +30,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
-        <leasegate.version>0.2-SNAPSHOT</leasegate.version>
+        <leasegate.version>0.2</leasegate.version>
         <jackson.version>2.21.2</jackson.version>
         <datahelper.version>2.0</datahelper.version>
         <main.class>leasegate.bwgate.BwgateMain</main.class>
